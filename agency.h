@@ -5,10 +5,16 @@
 #include "agent.h"
 #include "problemSpace.h"
 
+#include "boost/threadpool.hpp"
+
+#include <list>
 #include <vector>
 #include <boost/asio.hpp>
 #include <iostream>
 #include <fstream>
+#include <algorithm>
+
+#define NUM_THREADS 4
 
 class Agency{
 public:
@@ -22,11 +28,12 @@ int holdingPopulation,
 	mutagenRate,
 	mutagenImpact;
 
-std::vector<Agent*> agents;
+std::list<Agent> agents;
 std::vector<MateTarget*> mates;
 
-std::ifstream ipAddrs;
+std::vector<Agent> income;	//Agents arriving from foreign locations.
 
+std::ifstream ipAddrs;
 boost::asio::io_service serverService;	//client services will be made ephemerally as needed
 boost::asio::ip::tcp::resolver* clientResolver;
 std::vector<boost::asio::ip::tcp::resolver::query*> destinations;	//pre-loaded queries for the resolver to handle
@@ -35,10 +42,13 @@ public:
 Agency(int holdingPopulation, int mutRate, int mutSev, int msDelay, int trueRatio);
 
 private:
-bool bidCompare(const Agent& a, const Agent& b);	//allows sort function.
 void readyTCPStreams();
 void initStartPop();
 void logicLoop();
+void beginListen();
+void migrateIn();	//TODO: Write this function. Just pulls from incoming queue to population.
+struct bidSortatron{inline bool operator()(const Agent& a, const Agent& b){return a.mateBid < b.mateBid;}};
+struct energySortatron{inline bool operator()(const Agent& a, const Agent& b){return a.energy > b.energy;}};
 };
 
 #endif

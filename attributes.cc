@@ -1,7 +1,7 @@
 #include <cstdlib>
 
 #include "attributes.h"
-
+//Brief descriptions in header.
 void AgentAttributes::init(const AgentAttributes& parentA, const AgentAttributes& parentB, int mutRate, int mutSev){
 	for (int i = 0; i < 13; i++){
 		if (rand() < RAND_MAX / 2){
@@ -21,14 +21,16 @@ void AgentAttributes::init(const AgentAttributes& parentA, const AgentAttributes
 }
 
 void AgentAttributes::init(int minThresh, int maxThresh){
-	
+	for (int i = 0; i < 13; i++){
+		attributes[i] = rand() / (RAND_MAX / (maxThresh - minThresh + 1)) + minThresh;
+	}
 }
 
 int AgentAttributes::evaluateMoveBid(int energy, int income, int duration){
 	if (duration < attributes[wanderlust] || income > attributes[greed]) return 0;
 	if (energy / attributes[moveBidFactor] < attributes[moveMinBid]) {
 		if (energy > attributes[moveMinBid] + attributes[moveBidFactor]) return attributes[moveMinBid];
-		return 0;	//moveing "would" kill me. Hope for the best here.
+		return 0;	//moving would kill me. Hope for the best here.
 	}
 	if (energy / attributes[moveBidFactor] > attributes[moveMaxBid]) return attributes[moveMaxBid];
 	return energy / attributes[moveBidFactor];

@@ -136,16 +136,11 @@ void ProblemSpace::deVolumize(int volume, int* attributes){
 	}
 }
 
+/****
+* Returns a random int in a range(min:max).
+****/
 int ProblemSpace::randInRange(int min, int max){
 	int random = rand();
 	random /= (RAND_MAX / (max - min));
 	return random + min;
-}
-
-int main(void){
-	ProblemSpace PS(500,2);
-	new boost::thread(PS);
-	char lies[30];
-	cin >> lies;
-
 }

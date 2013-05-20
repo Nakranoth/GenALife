@@ -1,5 +1,9 @@
 #include "agent.h"
 
+/********
+* Typical way an agent is born; with two parents.
+* mutRate and mutSev relate to mutation rates and severities. 
+********/
 Agent::Agent(const Agent& parentA, const Agent& parentB, int mutRate, int mutSev){
 	knowledge.init(parentA.knowledge, parentB.knowledge, mutRate, mutSev);
 	stats.init(parentA.stats, parentB.stats, mutRate, mutSev);
@@ -7,6 +11,10 @@ Agent::Agent(const Agent& parentA, const Agent& parentB, int mutRate, int mutSev
 	id = selfHash(this);
 }
 
+/********
+* Way agents are born when there are not enough parents to reach acceptable populations.
+* min\max Thresh: Minimum\Maximum value preferences are allowed to have.
+********/
 Agent::Agent(int minThresh, int maxThresh){
 	knowledge.init(minThresh, maxThresh);
 	stats.init(minThresh, maxThresh);
@@ -14,7 +22,20 @@ Agent::Agent(int minThresh, int maxThresh){
 	id = selfHash(this);
 }
 
-void Agent::operator()(bool counts, const std::vector<MateTarget*>& mates, bool matingSeason){
+/********
+* Prepares an agent internally for running. Sets all relevant internals to correct values. 
+* Must always execute before threading.
+********/
+void Agent::ready(bool counts, const std::vector<MateTarget*>& mates, bool matingSeason){
+	this->counts = counts;
+	this->mates = mates;
+	this->matingSeason = matingSeason;
+}
+
+/********
+* Executed portion of agent's code. This is run from threads in the agency's threadpool. 
+********/
+void Agent::operator()(){
 	if (counts){	//have semi-recently had a thingamajig
 		age++;
 		energy--;

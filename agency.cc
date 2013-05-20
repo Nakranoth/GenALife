@@ -1,25 +1,33 @@
 #include "agency.h"
 
+/***
+* Main logic driver of entire simulator.
+* Each node on a network should have exactly one.
+***/
+
 using boost::asio::ip::tcp;
 
 const std::string Agency::PORT = "21337";
 
+/***
+* holdingPopulation: Minimum number of agents in a node. If there are fewer, agents may migrate in and/or reproduce.
+* mutRate: Each birth, there is a 1/mutRate chance of a mutation.
+* mutSev: The maximum severity of a mutation.
+* msDelay: The wait in ms between each item being evaluated in the problem space.
+* trueRatio: 1/trueRatio = ratio of thingamajigs to non-thingamajigs.
+***/
 Agency::Agency(int holdingPopulation, int mutRate, int mutSev, int msDelay, int trueRatio){
 	this->holdingPopulation = holdingPopulation;
 	mutagenRate = mutRate;
 	mutagenImpact = mutSev;
 	ProblemSpace(msDelay, trueRatio);
-	clientResolver = new tcp::resolver(clientService);
+	//clientResolver = new tcp::resolver(serverService);
 	readyTCPStreams();
 	initStartPop();//initialize rand pop.
 	beginListen();
 	for(;;){
 		logicLoop();
 	}
-}
-
-bool Agency::bidCompare(const Agent& a, const Agent& b){
-	return a.mateBid < b.mateBid;
 }
 
 void Agency::readyTCPStreams(){
@@ -44,9 +52,9 @@ void Agency::readyTCPStreams(){
 void Agency::initStartPop(){
 	MateTarget* temp;
 	for (int i = 0; i < holdingPopulation; i++){
-		agents.push_back(new Agent(0,1000));
+		agents.push_back(Agent(0,1000));
 		temp = new MateTarget();
-		temp->agent = agents.back();
+		temp->agent = &(agents.back());
 		temp->energy = &(temp->agent->energy);
 		temp->age = &(temp->agent->age);
 		mates.push_back(temp);
@@ -54,18 +62,20 @@ void Agency::initStartPop(){
 	population = holdingPopulation;
 }
 
+/**
+* All agent handling happens here. 
+*/
 void Agency::logicLoop(){
 	Agent* target;
-	std::sort(agents.begin(), agents.end(), energySort);
-	while(*(agents.end())->die){
-		for (vector<MateTarget*>::iterator i = mates.begin(); i < mates.end(); i++){
-			if (*i->agent == *agents.end()){
+	agents.sort(energySortatron());
+	while(agents.end()->die){
+		for (std::vector<MateTarget*>::iterator i = mates.begin(); i < mates.end(); i++){	//delete from mates.
+			if ((*i)->agent == &(*agents.end())){
 				delete *i;
-				erase(i);
+				mates.erase(i);
 				break;
 			}
 		}
-		delete *agents.end();
 		agents.pop_back();
 		population--;
 	}
@@ -74,11 +84,26 @@ void Agency::logicLoop(){
 	}
 	bool counts = timeSinceAgentScored < 10 && timeSinceTrueItem < 10;	//THIS LINE NEEDS TO BE VARRIED TO DETERMINE IDEAL NUMBERS.
 	bool matingSeason = population < holdingPopulation;
-	for (vector<Agent*>::iterator i = agents.begin(); i < agents.end; i++){
-		boost::thread(*i,counts,&mates,matingSeason);
+	boost::threadpool::pool threadPool(4);	//Number of agents to compute at once.
+	for (std::list<Agent>::iterator i = agents.begin(); i != agents.end(); i++){
+		i->ready(counts,mates,matingSeason);
+		threadPool.schedule(*i);
 	}
+	threadPool.wait();
 }
 
-bool Agency::energySort(Agent* a, Agent* b){
-	return a->energy > b->energy;	//causes sort to put them in decending rank by energy.
+/**
+* Starts the listening service(s). May require callback funtion to connection functions.
+* Callback function should load the results directly into a memory space for a new agent in income queue.
+*/
+void Agency::beginListen(){
+	
+}
+
+/**
+* Simply pulls agents from the income queue into the general population.
+* Remember to add associated mateTargets.
+*/
+void Agency::migrateIn(){
+	
 }

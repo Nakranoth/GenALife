@@ -1,4 +1,4 @@
-#include <iostream>
+/*#include <iostream>
 #include <cstring>
 #include <cstdlib>
 
@@ -58,4 +58,4 @@ int main(int argc, char* argv[]){
 		cout << ", " << newA->myB.array[i];
 	}
 	cout << '\n';
-}
+}*/

@@ -9,7 +9,7 @@ class AgentAttributes{
 public:
 
 protected:
-enum {
+enum {	//Indecies of each attribute. Makes bulk attribute handling simpler inside functions.
 	mateBidFactor,
 	mateMinBid,
 	mateMaxBid,
@@ -25,16 +25,15 @@ enum {
 	cloneMaxBid
 };
 
-int attributes[13];
+int attributes[13];	//All attributes governing agent behavior. See paper for full description of each.
 
 public:
-	//AgentAttributes();	//simple allocator
-void init(const AgentAttributes& parentA, const AgentAttributes& parentB, int mutRate, int mutSev);
-void init(int minThresh, int maxThresh);
+void init(const AgentAttributes& parentA, const AgentAttributes& parentB, int mutRate, int mutSev);//birth
+void init(int minThresh, int maxThresh);//initial population
 
-int evaluateMoveBid(int energy, int income, int duration);
-int evaluateCloneBid(int energy, int income, int duration);
-int evaluateMateBid(int energy);
+int evaluateMoveBid(int energy, int income, int duration);//Whether to move and how much to bid.
+int evaluateCloneBid(int energy, int income, int duration);//as above.
+int evaluateMateBid(int energy);//as above again.
 MateTarget* evaluateMateTarget(std::vector<MateTarget*> mates, Agent* self);
 
 private:

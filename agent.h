@@ -1,7 +1,6 @@
 #ifndef GEN_AGENT_H_
 #define GEN_AGENT_H_
 
-//#include <boost/thread.hpp>	//needed in cc?
 #include <boost/functional/hash.hpp>
 #include <queue>
 
@@ -24,6 +23,10 @@ public:
 private:
 	int duration;
 	float income;	//needs 1/N precision where N = incomes.size(). Thus, N should be a power of 2.
+	
+	bool counts,	//whether this round of execution causes loss of energy
+		matingSeason;	//whether to set up mate bids 
+	std::vector<MateTarget*> mates;
 
 protected:
 	Workload knowledge;	//attributes about PS.
@@ -32,12 +35,11 @@ protected:
 public:
 	Agent(const Agent& parentA, const Agent& parentB, int mutRate, int mutSev);
 	Agent(int minThresh, int maxThresh);	//used for initial populations.
-	void operator()(bool counts, const std::vector<MateTarget*>& mates, bool matingSeason);	//thread called from agency. Do aging steps iff (counts).
+	void ready(bool counts, const std::vector<MateTarget*>& mates, bool matingSeason);	
+	void operator()();//thread called from agency. Do aging steps iff (counts).
 	
 	void clearIncomes();	//Used after a move to sanitize income. 
 	
-private:
-	//std::string toString();	//returns the string used to hash this. Not required. Just use "this".
 };
 
 #endif //GEN_AGENT_H_

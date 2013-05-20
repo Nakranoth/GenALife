@@ -21,14 +21,16 @@ class Workload{
 	//****************************************************************
 	protected:
 		int thresholds[21][3];
-		static const ProblemSpace* PS;
+		static ProblemSpace PS;
 	
 	public:
+	Workload();	//explicit default constructor for agent declarations.
+	
 	void init(const Workload& parentA, const Workload& parentB, int mutRate, int mutSev);
 	void init(int minThresh, int maxThresh);
 
-	static void init(const ProblemSpace& PS);	//initializes PS. Required for evaluate calls.
 	bool evaluate();
 };
+ProblemSpace Workload::PS(20,20);//TODO:Make proper init function in main.
 
 #endif

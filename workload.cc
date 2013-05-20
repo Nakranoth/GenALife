@@ -1,7 +1,15 @@
 #include "workload.h"
 
-//ProblemSpace* Workload::PS = 0;	//Allocate PS.
+/********
+* Default constructor used by agent declarations.
+********/
+Workload::Workload(){
+	
+}
 
+/********
+* Sets up work space for newly born agents of two parents. 
+********/
 void Workload::init(const Workload& parentA, const Workload& parentB, int mutRate, int mutSev){
 	for (int i = 0; i < 15; i++){//flag or int
 		if (parentA.thresholds[i][0]){	//flags
@@ -25,7 +33,7 @@ void Workload::init(const Workload& parentA, const Workload& parentB, int mutRat
 			int shiftA2 = parentA.thresholds[i][2];
 			int shiftB1 = parentB.thresholds[i][1];
 			int shiftB2 = parentB.thresholds[i][2];
-			for (int j = 0; j < sizeof(int) * 8; i++){
+			for (unsigned int j = 0; j < sizeof(int) * 8; i++){
 				if (rand() < RAND_MAX / 2){
 					thresholds[i][1] |= (shiftA1 & 0x1) << j;
 				}
@@ -72,7 +80,7 @@ void Workload::init(const Workload& parentA, const Workload& parentB, int mutRat
 	for (int i = 15; i < 21; i++){//flags
 		int shiftA0 = parentA.thresholds[i][0];
 		int shiftB0 = parentB.thresholds[i][0];
-		for (int j = 0; j < sizeof(int) * 8; i++){
+		for (unsigned int j = 0; j < sizeof(int) * 8; i++){
 			if (rand() < RAND_MAX / 2){
 				thresholds[i][0] |= (shiftA0 & 0x1) << j;
 			}
@@ -127,42 +135,38 @@ void Workload::init(int minThresh, int maxThresh){
 	}
 }
 
-void Workload::init(const ProblemSpace& PSin){
-	PS = &PSin;
-}
-
 bool Workload::evaluate(){
-	PS->rwControl->lock_sharable();
+	PS.rwControl->lock_sharable();
 	bool ret = true;
 	
 	for (int i = 0; i < 15; i++){
 		if (thresholds[i][0] == 0){	//int
-			if (PS->attributes[i] < thresholds[i][1] || PS->attributes[i] > thresholds[i][2]){
+			if (PS.attributes[i] < thresholds[i][1] || PS.attributes[i] > thresholds[i][2]){
 				ret = false;
 				break;
 			}
 		}
 		else{	//flags
 			if (thresholds[i][0] & 0x2){
-				if (thresholds[i][1] & PS->attributes[i] != thresholds[i][1]){
+				if ((thresholds[i][1] & PS.attributes[i]) != thresholds[i][1]){
 					ret = false;
 					break;
 				}
 			}
 			else{
-				if (!(thresholds[i][1] & PS->attributes[i])){
+				if (!(thresholds[i][1] & PS.attributes[i])){
 					ret = false;
 					break;
 				}
 			}
 			if (thresholds[i][0] & 0x4){
-				if (thresholds[i][2] & ~PS->attributes[i] != thresholds[i][2]){
+				if ((thresholds[i][2] & ~PS.attributes[i]) != thresholds[i][2]){
 					ret = false;
 					break;
 				}
 			}
 			else{
-				if (!(thresholds[i][2] & ~PS->attributes[i])){
+				if (!(thresholds[i][2] & ~PS.attributes[i])){
 					ret = false;
 					break;
 				}
@@ -176,19 +180,19 @@ bool Workload::evaluate(){
 	for (int i = 0; (m1shift || m2shift) && i < 15; i++){
 		if (m1shift & 0x1){
 			if (m1shift & 0x2){
-				m1res /= PS->attributes[i];
+				m1res /= PS.attributes[i];
 			}
 			else{
-				m1res *= PS->attributes[i];
+				m1res *= PS.attributes[i];
 			}
 		}
 		m1shift >>= 2;
 		if (m2shift & 0x1){
 			if (m2shift & 0x2){
-				m2res /= PS->attributes[i];
+				m2res /= PS.attributes[i];
 			}
 			else{
-				m2res *= PS->attributes[i];
+				m2res *= PS.attributes[i];
 			}
 		}
 		m2shift >>= 2;
@@ -201,19 +205,19 @@ bool Workload::evaluate(){
 	for (int i = 0; (m1shift || m2shift) && i < 15; i++){
 		if (m1shift & 0x1){
 			if (m1shift & 0x2){
-				m1res -= PS->attributes[i];
+				m1res -= PS.attributes[i];
 			}
 			else{
-				m1res += PS->attributes[i];
+				m1res += PS.attributes[i];
 			}
 		}
 		m1shift >>= 2;
 		if (m2shift & 0x1){
 			if (m2shift & 0x2){
-				m2res -= PS->attributes[i];
+				m2res -= PS.attributes[i];
 			}
 			else{
-				m2res += PS->attributes[i];
+				m2res += PS.attributes[i];
 			}
 		}
 		m2shift >>= 2;
@@ -251,6 +255,6 @@ bool Workload::evaluate(){
 		ret = false;
 	}
 	
-	PS->rwControl->unlock_sharable();
+	PS.rwControl->unlock_sharable();
 	return ret;
 }
